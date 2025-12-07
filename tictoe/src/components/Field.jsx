@@ -1,6 +1,8 @@
 import { FieldLayout } from "./FieldLayout";
 import PropTypes from "prop-types";
-import { store } from "../store.js";
+// import { store } from "../store.js";
+import { useDispatch } from "react-redux";
+
 import {
   SET_CURRENT_PLAYER,
   END_GAME,
@@ -22,6 +24,8 @@ const winPatterns = [
 ];
 
 export function Field() {
+  const dispatch = useDispatch();
+
   // FUNCTIONS
 
   function containsArray(baseArray, arrayToCheck) {
@@ -36,25 +40,8 @@ export function Field() {
     return true;
   }
 
-  // function compareArray(array1, array2) {
-  //   let sortedArray1 = [...array1].sort();
-  //   let sortedArray2 = [...array2].sort();
-  //   console.log("sorting array", sortedArray1, sortedArray2);
-
-  //   for (let i = 0; i < sortedArray1.length; i++) {
-  //     console.log(i, " ", sortedArray1[i], " ", sortedArray2[i]);
-  //     if (sortedArray1[i] !== sortedArray2[i]) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
-
   // F win ior draw
-  function checkWinDraw(updatedField) {
-    const appState = store.getState();
-    const currentPlayer = appState.currentPlayer;
-
+  function checkWinDraw(updatedField, currentPlayer, isGameEnded) {
     const currentPattern = [];
     updatedField.forEach((cell, i) => {
       if (cell === currentPlayer) {
@@ -64,51 +51,47 @@ export function Field() {
 
     winPatterns.forEach((pattern) => {
       if (containsArray(pattern, currentPattern)) {
-        store.dispatch({ type: END_GAME });
-        store.dispatch({ type: SET_WINNER, payload: currentPlayer });
-        store.dispatch({ type: SET_GAME_ACTIVE, payload: false });
+        dispatch({ type: END_GAME });
+        dispatch({ type: SET_WINNER, payload: currentPlayer });
+        dispatch({ type: SET_GAME_ACTIVE, payload: false });
         return true;
       } else {
         console.log("No matches found");
       }
     });
 
-    if (!appState.isGameEnded && currentPattern.length >= 5) {
-      store.dispatch({ type: END_GAME });
-      store.dispatch({ type: SET_DRAW });
-      store.dispatch({ type: SET_GAME_ACTIVE, payload: false });
+    if (!isGameEnded && currentPattern.length >= 5) {
+      dispatch({ type: END_GAME });
+      dispatch({ type: SET_DRAW });
+      dispatch({ type: SET_GAME_ACTIVE, payload: false });
       return true;
     }
   }
 
   //  F change Player
-  function changecurrentPlayer() {
-    const appState = store.getState();
-    const currentPlayer = appState.currentPlayer;
+  function changecurrentPlayer(currentPlayer) {
     const otherPlayer = currentPlayer === "x" ? "o" : "x";
-
-    store.dispatch({ type: SET_CURRENT_PLAYER, payload: otherPlayer });
+    dispatch({ type: SET_CURRENT_PLAYER, payload: otherPlayer });
   }
 
   // F = onClick
-  function onClick(index) {
-    const appState = store.getState();
-    if (appState.isGameEnded) {
+  function onClick(index, isGameEnded, field, currentPlayer) {
+    if (isGameEnded) {
       return;
     }
-    if (appState.field[index]) {
+    if (field[index]) {
       console.log("Already filled");
       return;
     }
 
-    const updatedField = appState.field.map((cell, i) => {
-      let cellState = i === index ? appState.currentPlayer : cell;
+    const updatedField = field.map((cell, i) => {
+      let cellState = i === index ? currentPlayer : cell;
       return cellState;
     });
-    console.log("Here", appState.field);
-    store.dispatch({ type: UPDATE_FIELD, payload: updatedField });
-    checkWinDraw(updatedField);
-    changecurrentPlayer();
+    console.log("Here", field);
+    dispatch({ type: UPDATE_FIELD, payload: updatedField });
+    checkWinDraw(updatedField, currentPlayer, isGameEnded);
+    changecurrentPlayer(currentPlayer);
   }
 
   // RETURN

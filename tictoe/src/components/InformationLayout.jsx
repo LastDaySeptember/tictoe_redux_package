@@ -1,17 +1,27 @@
 import styles from "./InformationLayout.module.css";
 import PropTypes from "prop-types";
-import { store } from "../store.js";
+import { useSelector } from "react-redux";
+import {
+  selectCurrentPlayer,
+  selectIsGameEnded,
+  selectIsDraw,
+  selectWinner,
+} from "../selectors";
 
 export function InformationLayout() {
-  const appState = store.getState();
+  const currentPlayer = useSelector(selectCurrentPlayer);
+  const isGameEnded = useSelector(selectIsGameEnded);
+  const isDraw = useSelector(selectIsDraw);
+  const winner = useSelector(selectWinner);
 
   let infoText = "";
-  if (!appState.isGameEnded) {
-    infoText = `Current Player : ${appState.currentPlayer}`;
-  } else if (appState.isDraw) {
+  if (!isGameEnded) {
+    /*  */
+    infoText = `Current Player : ${currentPlayer}`;
+  } else if (isDraw) {
     infoText = `Draw!`;
   } else {
-    infoText = `${appState.winner} wins!`;
+    infoText = `${winner} wins!`;
   }
 
   return (
